@@ -17,27 +17,21 @@
   <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
 
   <style>
-    /* Prevent “blank page” flashes on some static hosts by showing loader until JS init */
     #app { display: none; }
-    /* Smooth sidebar overlay */
     .backdrop { background: rgba(0,0,0,.35); }
-    /* Safer iOS bottom inset handling */
     .safe-b { padding-bottom: env(safe-area-inset-bottom); }
-    /* Allow messages to wrap long code */
     pre, code { white-space: pre-wrap; word-break: break-word; }
-    /* Typing caret */
     .caret::after { content: "▍"; animation: blink 1s steps(1) infinite; margin-left: 2px; }
     @keyframes blink { 50% { opacity: 0; } }
   </style>
 
   <script>
-    /* Tailwind dark mode config */
     tailwind.config = { darkMode: 'class' }
   </script>
 </head>
 
 <body class="min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-  <!-- Fallback loader (MUST be visible until JS initializes) -->
+  <!-- Fallback loader -->
   <div id="loading" class="min-h-screen flex items-center justify-center px-6">
     <div class="max-w-md w-full text-center">
       <div class="mx-auto h-10 w-10 rounded-full border-4 border-zinc-200 border-t-zinc-900 dark:border-zinc-800 dark:border-t-zinc-100 animate-spin"></div>
@@ -59,7 +53,7 @@
     <aside id="sidebar"
       class="fixed z-50 inset-y-0 left-0 w-80 max-w-[85vw] transform -translate-x-full md:translate-x-0 md:static md:inset-auto md:z-auto
              bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
-      <!-- Sidebar header -->
+
       <div class="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <div class="h-9 w-9 rounded-xl bg-zinc-900 dark:bg-zinc-100"></div>
@@ -73,7 +67,6 @@
           aria-label="Close sidebar">✕</button>
       </div>
 
-      <!-- Sidebar actions -->
       <div class="p-3 flex gap-2">
         <button id="newChatBtn"
           class="flex-1 px-3 py-2 rounded-xl bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:opacity-90 text-sm font-semibold">
@@ -90,7 +83,6 @@
         </button>
       </div>
 
-      <!-- Search -->
       <div class="px-3 pb-3">
         <input id="chatSearch"
           class="w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950
@@ -98,10 +90,8 @@
           placeholder="Search chats..." />
       </div>
 
-      <!-- Chats list -->
       <div id="chatList" class="flex-1 overflow-auto px-2 pb-2"></div>
 
-      <!-- Footer -->
       <div class="p-3 border-t border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 dark:text-zinc-400">
         Local-first • OpenRouter • Single-file
       </div>
@@ -109,7 +99,6 @@
 
     <!-- Main -->
     <main class="flex-1 flex flex-col min-h-screen">
-      <!-- Top bar -->
       <header class="sticky top-0 z-30 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur border-b border-zinc-200 dark:border-zinc-800">
         <div class="px-3 md:px-6 py-3 flex items-center justify-between gap-3">
           <div class="flex items-center gap-2 min-w-0">
@@ -137,11 +126,8 @@
         </div>
       </header>
 
-      <!-- Messages -->
       <section class="flex-1 min-h-0">
-        <div id="messages"
-          class="h-full overflow-auto px-3 md:px-6 py-6 space-y-4">
-          <!-- messages injected -->
+        <div id="messages" class="h-full overflow-auto px-3 md:px-6 py-6 space-y-4">
           <div id="emptyState" class="py-16 text-center text-zinc-500 dark:text-zinc-400">
             <div class="text-xl font-semibold text-zinc-800 dark:text-zinc-200">Start a conversation</div>
             <div class="mt-2 text-sm">Your chats are saved locally. Add your OpenRouter key in Settings.</div>
@@ -149,10 +135,24 @@
         </div>
       </section>
 
-      <!-- Input bar (keyboard safe) -->
+      <!-- Input bar -->
       <footer class="sticky bottom-0 z-30 safe-b bg-zinc-50/95 dark:bg-zinc-950/95 backdrop-blur border-t border-zinc-200 dark:border-zinc-800">
         <div class="px-3 md:px-6 py-3">
           <div class="flex items-end gap-2">
+            <!-- Voice / TTS controls -->
+            <div class="flex flex-col gap-2">
+              <button id="micBtn"
+                class="p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                title="Voice input (Speech-to-Text)">
+                🎙
+              </button>
+              <button id="ttsToggleBtn"
+                class="p-3 rounded-2xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                title="Toggle AI voice (Text-to-Speech)">
+                🔊
+              </button>
+            </div>
+
             <div class="flex-1">
               <div class="relative">
                 <textarea id="promptInput" rows="1"
@@ -168,7 +168,8 @@
               </div>
               <div id="hintBar" class="mt-2 text-xs text-zinc-500 dark:text-zinc-400 flex flex-wrap gap-x-3 gap-y-1">
                 <span>Enter = send • Shift+Enter = newline</span>
-                <span>Streaming enabled</span>
+                <span id="voiceHint">Mic: ready</span>
+                <span id="ttsHint">TTS: off</span>
               </div>
             </div>
 
@@ -184,7 +185,6 @@
     </main>
   </div>
 
-  <!-- Modals -->
   <!-- Settings Modal -->
   <div id="settingsModal" class="fixed inset-0 z-[60] hidden">
     <div class="absolute inset-0 backdrop"></div>
@@ -212,8 +212,40 @@
               class="mt-1 w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950
                      focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-sm"
               placeholder="deepseek/deepseek-r1:free" />
-            <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              Example: openai/gpt-4o-mini, anthropic/claude-3.5-sonnet, deepseek/deepseek-r1:free
+          </div>
+
+          <div class="border-t border-zinc-200 dark:border-zinc-800 pt-4">
+            <div class="font-semibold text-sm">Audio</div>
+            <div class="mt-3 space-y-3">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-sm font-semibold">Voice language (STT/TTS)</label>
+                  <select id="voiceLangSelect"
+                    class="mt-1 w-full px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950
+                           focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-sm">
+                    <option value="bn-BD">বাংলা (bn-BD)</option>
+                    <option value="bn-IN">বাংলা (bn-IN)</option>
+                    <option value="en-US">English (en-US)</option>
+                    <option value="en-GB">English (en-GB)</option>
+                    <option value="hi-IN">Hindi (hi-IN)</option>
+                  </select>
+                </div>
+                <div class="flex items-end">
+                  <label class="flex items-center gap-2 text-sm">
+                    <input id="autoSendVoiceChk" type="checkbox" class="h-4 w-4">
+                    Auto-send after dictation
+                  </label>
+                </div>
+              </div>
+
+              <label class="flex items-center gap-2 text-sm">
+                <input id="autoSpeakAiChk" type="checkbox" class="h-4 w-4">
+                Auto-speak AI responses (TTS)
+              </label>
+
+              <div class="text-xs text-zinc-500 dark:text-zinc-400">
+                Browser voice uses Web Speech API (no keys). Note: SpeechRecognition support varies across browsers. :contentReference[oaicite:7]{index=7}
+              </div>
             </div>
           </div>
 
@@ -229,10 +261,9 @@
           </div>
 
           <div class="pt-2 border-t border-zinc-200 dark:border-zinc-800">
-            <div class="text-sm font-semibold">Advanced Agent Mode (optional)</div>
+            <div class="text-sm font-semibold">Advanced Agent Mode</div>
             <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-              This UI supports “agent-style” behavior via your System Prompt + tool-like instructions in messages.
-              (No external tool execution in this zero-build file.)
+              Use System Prompt to define agent behaviors (planning, checklists, structured output).
             </div>
           </div>
         </div>
@@ -252,9 +283,7 @@
 
         <div class="p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
-            <div class="text-sm text-zinc-600 dark:text-zinc-300">
-              Choose scope:
-            </div>
+            <div class="text-sm text-zinc-600 dark:text-zinc-300">Choose scope:</div>
             <div class="flex gap-2">
               <button id="sysScopeChatBtn"
                 class="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-sm">
@@ -270,12 +299,7 @@
           <textarea id="systemPromptArea" rows="10"
             class="w-full px-3 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950
                    focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-sm"
-            placeholder="You are an advanced agent. Follow user goals, ask clarifying questions only when needed, be concise..."></textarea>
-
-          <div class="flex flex-wrap gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-            <span>Tip:</span>
-            <span>Use this to define “advanced agent” behavior (planning, structured output, guardrails).</span>
-          </div>
+            placeholder="You are an advanced agent..."></textarea>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
             <button id="saveSystemBtn"
@@ -326,28 +350,26 @@
     (function () {
       "use strict";
 
-      // =========================
-      // Defensive helpers
-      // =========================
       const $ = (id) => document.getElementById(id);
       const safeText = (v, fallback = "") => (typeof v === "string" ? v : (v == null ? fallback : String(v)));
       const nowISO = () => new Date().toISOString();
       const uid = () => Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
 
-      // Storage keys
       const KEYS = Object.freeze({
         apiKey: "uai.openrouter.key",
         model: "uai.openrouter.model",
         dark: "uai.ui.dark",
         chats: "uai.chats",
         active: "uai.activeChat",
-        globalSystem: "uai.system.global"
+        globalSystem: "uai.system.global",
+        voiceLang: "uai.audio.lang",
+        autoSendVoice: "uai.audio.autosend",
+        autoSpeakAi: "uai.audio.autospeak"
       });
 
-      // Default model
       const DEFAULT_MODEL = "deepseek/deepseek-r1:free";
+      const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
-      // App state
       const state = {
         apiKey: "",
         model: DEFAULT_MODEL,
@@ -356,13 +378,18 @@
         activeChatId: null,
         streaming: false,
         abortController: null,
-        sysScope: "chat", // "chat" | "global"
-        renameTargetId: null
+        sysScope: "chat",
+        renameTargetId: null,
+
+        // Audio
+        voiceLang: "bn-BD",
+        autoSendVoice: false,
+        autoSpeakAi: false,
+        listening: false,
+        recognition: null
       };
 
-      // =========================
-      // Markdown rendering config
-      // =========================
+      // Markdown config
       try {
         marked.setOptions({
           gfm: true,
@@ -373,70 +400,27 @@
             try {
               if (lang && hljs.getLanguage(lang)) return hljs.highlight(code, { language: lang }).value;
               return hljs.highlightAuto(code).value;
-            } catch (_) {
-              return code;
-            }
+            } catch (_) { return code; }
           }
         });
       } catch (_) {}
 
-      // =========================
-      // Persistence
-      // =========================
       function loadLS(key, fallback) {
-        try {
-          const v = localStorage.getItem(key);
-          return v == null ? fallback : v;
-        } catch (_) { return fallback; }
+        try { const v = localStorage.getItem(key); return v == null ? fallback : v; }
+        catch (_) { return fallback; }
       }
       function saveLS(key, value) {
         try { localStorage.setItem(key, value); } catch (_) {}
       }
       function loadJSON(key, fallback) {
-        try {
-          const v = localStorage.getItem(key);
-          if (!v) return fallback;
-          return JSON.parse(v);
-        } catch (_) { return fallback; }
+        try { const v = localStorage.getItem(key); if (!v) return fallback; return JSON.parse(v); }
+        catch (_) { return fallback; }
       }
       function saveJSON(key, obj) {
         try { localStorage.setItem(key, JSON.stringify(obj)); } catch (_) {}
       }
 
-      // =========================
-      // Chat data model
-      // =========================
-      // chat: { id, title, createdAt, updatedAt, messages: [{role, content, ts}], systemPrompt?: string }
-      function createChat(initialTitle = "New chat") {
-        const id = uid();
-        const t = safeText(initialTitle, "New chat").trim() || "New chat";
-        return {
-          id,
-          title: t,
-          createdAt: nowISO(),
-          updatedAt: nowISO(),
-          messages: [],
-          systemPrompt: "" // per chat
-        };
-      }
-
-      function getActiveChat() {
-        return state.chats.find(c => c.id === state.activeChatId) || null;
-      }
-
-      function touchChat(chat) {
-        if (!chat) return;
-        chat.updatedAt = nowISO();
-      }
-
-      function persistChats() {
-        saveJSON(KEYS.chats, state.chats);
-        if (state.activeChatId) saveLS(KEYS.active, state.activeChatId);
-      }
-
-      // =========================
       // UI refs
-      // =========================
       const el = {
         loading: $("loading"),
         app: $("app"),
@@ -444,7 +428,6 @@
         mobileOverlay: $("mobileOverlay"),
         chatList: $("chatList"),
         chatTitle: $("chatTitle"),
-        chatMeta: $("chatMeta"),
         modelLabel: $("modelLabel"),
         messages: $("messages"),
         emptyState: $("emptyState"),
@@ -453,8 +436,9 @@
         stopBtn: $("stopBtn"),
         statusBar: $("statusBar"),
         hintBar: $("hintBar"),
+        voiceHint: $("voiceHint"),
+        ttsHint: $("ttsHint"),
 
-        // buttons
         hamburgerBtn: $("hamburgerBtn"),
         closeSidebarBtn: $("closeSidebarBtn"),
         newChatBtn: $("newChatBtn"),
@@ -464,11 +448,20 @@
         clearBtn: $("clearBtn"),
         chatSearch: $("chatSearch"),
 
+        // audio buttons
+        micBtn: $("micBtn"),
+        ttsToggleBtn: $("ttsToggleBtn"),
+
         // modals
         settingsModal: $("settingsModal"),
         apiKeyInput: $("apiKeyInput"),
         modelInput: $("modelInput"),
         saveSettingsBtn: $("saveSettingsBtn"),
+
+        // audio settings
+        voiceLangSelect: $("voiceLangSelect"),
+        autoSendVoiceChk: $("autoSendVoiceChk"),
+        autoSpeakAiChk: $("autoSpeakAiChk"),
 
         systemModal: $("systemModal"),
         systemPromptArea: $("systemPromptArea"),
@@ -481,21 +474,16 @@
         renameSaveBtn: $("renameSaveBtn"),
       };
 
-      // =========================
       // Theme
-      // =========================
       function applyDarkMode(isDark) {
         state.dark = !!isDark;
         document.documentElement.classList.toggle("dark", state.dark);
         saveLS(KEYS.dark, state.dark ? "1" : "0");
-        // Update theme-color
         const meta = document.querySelector('meta[name="theme-color"]');
         if (meta) meta.setAttribute("content", state.dark ? "#09090b" : "#ffffff");
       }
 
-      // =========================
       // Sidebar mobile
-      // =========================
       function openSidebar() {
         el.sidebar.classList.remove("-translate-x-full");
         el.mobileOverlay.classList.remove("hidden");
@@ -506,19 +494,10 @@
         el.mobileOverlay.classList.add("hidden");
       }
 
-      // =========================
       // Modal helpers
-      // =========================
-      function openModal(modalEl) {
-        if (!modalEl) return;
-        modalEl.classList.remove("hidden");
-      }
-      function closeModal(modalEl) {
-        if (!modalEl) return;
-        modalEl.classList.add("hidden");
-      }
+      function openModal(modalEl) { if (modalEl) modalEl.classList.remove("hidden"); }
+      function closeModal(modalEl) { if (modalEl) modalEl.classList.add("hidden"); }
 
-      // Close modal via data-close
       document.addEventListener("click", (e) => {
         const t = e.target;
         if (!(t instanceof Element)) return;
@@ -526,18 +505,49 @@
         if (key && $(key)) closeModal($(key));
       });
 
-      // Escape closes modals/sidebar
       document.addEventListener("keydown", (e) => {
         if (e.key !== "Escape") return;
         closeSidebar();
         closeModal(el.settingsModal);
         closeModal(el.systemModal);
         closeModal(el.renameModal);
+        stopListening();
+        stopSpeaking();
       });
 
-      // =========================
-      // Rendering chat list
-      // =========================
+      function setStatus(msg, kind) {
+        const t = safeText(msg, "");
+        el.statusBar.textContent = t;
+        el.statusBar.className = "mt-2 text-xs " + (kind === "error"
+          ? "text-red-600 dark:text-red-400"
+          : "text-zinc-500 dark:text-zinc-400");
+      }
+
+      // Chat model
+      function createChat(initialTitle = "New chat") {
+        const id = uid();
+        const t = safeText(initialTitle, "New chat").trim() || "New chat";
+        return { id, title: t, createdAt: nowISO(), updatedAt: nowISO(), messages: [], systemPrompt: "" };
+      }
+      function getActiveChat() { return state.chats.find(c => c.id === state.activeChatId) || null; }
+      function touchChat(chat) { if (chat) chat.updatedAt = nowISO(); }
+      function persistChats() { saveJSON(KEYS.chats, state.chats); if (state.activeChatId) saveLS(KEYS.active, state.activeChatId); }
+
+      function ensureActiveChat() {
+        if (state.activeChatId && getActiveChat()) return getActiveChat();
+        if (state.chats.length) {
+          const sorted = [...state.chats].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+          state.activeChatId = sorted[0].id;
+          saveLS(KEYS.active, state.activeChatId);
+          return getActiveChat();
+        }
+        const c = createChat("New chat");
+        state.chats.push(c);
+        state.activeChatId = c.id;
+        persistChats();
+        return c;
+      }
+
       function formatWhen(iso) {
         try {
           const d = new Date(iso);
@@ -545,21 +555,15 @@
           const sameDay = d.toDateString() === now.toDateString();
           if (sameDay) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           return d.toLocaleDateString([], { month: 'short', day: '2-digit' });
-        } catch (_) {
-          return "";
-        }
+        } catch (_) { return ""; }
       }
 
       function renderChatList() {
-        if (!el.chatList) return;
         const q = safeText(el.chatSearch?.value, "").trim().toLowerCase();
         const chats = [...state.chats].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
-        const filtered = q
-          ? chats.filter(c => (safeText(c.title).toLowerCase().includes(q)))
-          : chats;
+        const filtered = q ? chats.filter(c => safeText(c.title).toLowerCase().includes(q)) : chats;
 
         el.chatList.innerHTML = "";
-
         if (!filtered.length) {
           const empty = document.createElement("div");
           empty.className = "p-4 text-sm text-zinc-500 dark:text-zinc-400";
@@ -574,12 +578,11 @@
           const row = document.createElement("div");
           row.className =
             "group px-2 py-2 rounded-xl cursor-pointer flex items-center gap-2 " +
-            (isActive
-              ? "bg-zinc-100 dark:bg-zinc-800"
-              : "hover:bg-zinc-100 dark:hover:bg-zinc-800");
+            (isActive ? "bg-zinc-100 dark:bg-zinc-800" : "hover:bg-zinc-100 dark:hover:bg-zinc-800");
 
           const left = document.createElement("div");
           left.className = "min-w-0 flex-1";
+
           const title = document.createElement("div");
           title.className = "text-sm font-semibold truncate";
           title.textContent = safeText(chat.title, "Untitled");
@@ -615,7 +618,18 @@
 
           delBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            deleteChat(chat.id);
+            const ok = confirm(`Delete chat "${safeText(chat.title, "Chat")}"?`);
+            if (!ok) return;
+            state.chats = state.chats.filter(c => c.id !== chat.id);
+            if (state.activeChatId === chat.id) {
+              state.activeChatId = null;
+              saveLS(KEYS.active, "");
+              ensureActiveChat();
+            }
+            persistChats();
+            renderChatList();
+            updateHeader();
+            renderMessages();
           });
 
           actions.appendChild(renameBtn);
@@ -633,30 +647,164 @@
         });
       }
 
-      // =========================
-      // Messages rendering
-      // =========================
       function sanitizeHTML(html) {
-        // Minimal defensive sanitize: remove script tags.
-        // NOTE: For stronger XSS safety, you'd use a sanitizer library, but we keep zero-build.
         return safeText(html, "").replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "");
       }
-
       function renderMarkdown(content) {
+        try { return sanitizeHTML(marked.parse(safeText(content, ""))); }
+        catch (_) { return `<p>${safeText(content, "").replace(/</g, "&lt;")}</p>`; }
+      }
+      function scrollToBottom() {
+        try { el.messages.scrollTop = el.messages.scrollHeight; } catch (_) {}
+      }
+
+      // --- TTS helpers ---
+      function stripForSpeech(markdownText) {
+        const t = safeText(markdownText, "");
+        // cheap-ish cleanup
+        return t
+          .replace(/```[\s\S]*?```/g, " ")   // remove code blocks
+          .replace(/`([^`]+)`/g, "$1")       // inline code
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+          .replace(/[#>*_~]/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      }
+
+      function setTtsHint() {
+        el.ttsHint.textContent = "TTS: " + (state.autoSpeakAi ? "on" : "off");
+        el.ttsToggleBtn.classList.toggle("bg-zinc-900", state.autoSpeakAi && !state.dark);
+        el.ttsToggleBtn.classList.toggle("text-white", state.autoSpeakAi && !state.dark);
+        el.ttsToggleBtn.classList.toggle("dark:bg-zinc-100", state.autoSpeakAi);
+        el.ttsToggleBtn.classList.toggle("dark:text-zinc-900", state.autoSpeakAi);
+      }
+
+      function stopSpeaking() {
+        try { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); } catch (_) {}
+      }
+
+      function speakText(text) {
+        if (!("speechSynthesis" in window)) {
+          setStatus("TTS not supported in this browser.", "error");
+          return;
+        }
+        const clean = stripForSpeech(text);
+        if (!clean) return;
+
+        stopSpeaking();
+        const u = new SpeechSynthesisUtterance(clean);
+        u.lang = state.voiceLang || "bn-BD";
+
+        // try to pick best voice for lang
         try {
-          const html = marked.parse(safeText(content, ""));
-          return sanitizeHTML(html);
-        } catch (_) {
-          return `<p>${safeText(content, "").replace(/</g, "&lt;")}</p>`;
+          const voices = window.speechSynthesis.getVoices?.() || [];
+          const v = voices.find(v => (v.lang || "").toLowerCase() === (u.lang || "").toLowerCase())
+                || voices.find(v => (v.lang || "").toLowerCase().startsWith((u.lang || "").slice(0,2).toLowerCase()));
+          if (v) u.voice = v;
+        } catch (_) {}
+
+        window.speechSynthesis.speak(u);
+      }
+
+      // --- STT (SpeechRecognition) ---
+      function isSpeechRecognitionSupported() {
+        return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+      }
+
+      function setVoiceHint() {
+        if (!isSpeechRecognitionSupported()) {
+          el.voiceHint.textContent = "Mic: unsupported";
+          return;
+        }
+        el.voiceHint.textContent = "Mic: " + (state.listening ? "listening..." : "ready");
+      }
+
+      function initSpeechRecognition() {
+        if (!isSpeechRecognitionSupported()) return null;
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SR();
+        rec.lang = state.voiceLang || "bn-BD";
+        rec.interimResults = true;
+        rec.continuous = false;
+
+        let finalTranscript = "";
+
+        rec.onstart = () => {
+          state.listening = true;
+          setVoiceHint();
+          setStatus("Listening... speak now.", "info");
+          el.micBtn.classList.add("bg-zinc-900", "text-white");
+          el.micBtn.classList.add("dark:bg-zinc-100", "dark:text-zinc-900");
+        };
+
+        rec.onerror = (e) => {
+          state.listening = false;
+          setVoiceHint();
+          el.micBtn.classList.remove("bg-zinc-900", "text-white", "dark:bg-zinc-100", "dark:text-zinc-900");
+          setStatus("Mic error: " + safeText(e?.error, "unknown"), "error");
+        };
+
+        rec.onend = () => {
+          state.listening = false;
+          setVoiceHint();
+          el.micBtn.classList.remove("bg-zinc-900", "text-white", "dark:bg-zinc-100", "dark:text-zinc-900");
+
+          // Append final transcript
+          finalTranscript = finalTranscript.trim();
+          if (finalTranscript) {
+            const current = safeText(el.promptInput.value, "");
+            el.promptInput.value = (current ? (current + " ") : "") + finalTranscript;
+            autosizeTextarea();
+            if (state.autoSendVoice) {
+              sendMessage();
+            } else {
+              setStatus("Voice captured. Edit if needed, then Send.", "info");
+            }
+          }
+        };
+
+        rec.onresult = (event) => {
+          let interim = "";
+          finalTranscript = "";
+
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const res = event.results[i];
+            const txt = safeText(res?.[0]?.transcript, "");
+            if (res.isFinal) finalTranscript += txt + " ";
+            else interim += txt + " ";
+          }
+
+          // show interim in status
+          const preview = (finalTranscript + interim).trim();
+          if (preview) setStatus("Listening: " + preview, "info");
+        };
+
+        return rec;
+      }
+
+      function startListening() {
+        if (!isSpeechRecognitionSupported()) {
+          setStatus("SpeechRecognition not supported. Use Chrome / Android Chrome.", "error");
+          return;
+        }
+        if (!state.recognition) state.recognition = initSpeechRecognition();
+        if (!state.recognition) return;
+        try {
+          state.recognition.lang = state.voiceLang || "bn-BD";
+          state.recognition.start();
+        } catch (e) {
+          // Some browsers throw if start called twice
+          setStatus("Mic busy. Try again.", "error");
         }
       }
 
-      function scrollToBottom() {
-        try {
-          el.messages.scrollTop = el.messages.scrollHeight;
-        } catch (_) {}
+      function stopListening() {
+        try { state.recognition?.stop?.(); } catch (_) {}
+        state.listening = false;
+        setVoiceHint();
       }
 
+      // Messages rendering with speak button for AI
       function renderMessages() {
         const chat = getActiveChat();
         el.messages.innerHTML = "";
@@ -667,7 +815,7 @@
           return;
         }
 
-        msgs.forEach((m, idx) => {
+        msgs.forEach((m) => {
           const role = safeText(m.role, "assistant");
           const isUser = role === "user";
 
@@ -681,6 +829,40 @@
               ? "bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100"
               : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800");
 
+          // bubble header actions for assistant
+          if (!isUser) {
+            const actions = document.createElement("div");
+            actions.className = "mb-2 flex items-center justify-end gap-2";
+
+            const speakBtn = document.createElement("button");
+            speakBtn.className = "px-2 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs";
+            speakBtn.textContent = "Speak";
+
+            const stopBtn = document.createElement("button");
+            stopBtn.className = "px-2 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs";
+            stopBtn.textContent = "Stop";
+
+            const copyBtn = document.createElement("button");
+            copyBtn.className = "px-2 py-1 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs";
+            copyBtn.textContent = "Copy";
+
+            speakBtn.addEventListener("click", () => speakText(safeText(m.content, "")));
+            stopBtn.addEventListener("click", () => stopSpeaking());
+            copyBtn.addEventListener("click", async () => {
+              try {
+                await navigator.clipboard.writeText(safeText(m.content, ""));
+                setStatus("Copied.", "info");
+              } catch (_) {
+                setStatus("Copy failed.", "error");
+              }
+            });
+
+            actions.appendChild(copyBtn);
+            actions.appendChild(speakBtn);
+            actions.appendChild(stopBtn);
+            bubble.appendChild(actions);
+          }
+
           const content = document.createElement("div");
           content.className = "prose prose-zinc dark:prose-invert max-w-none prose-pre:rounded-xl prose-pre:border prose-pre:border-zinc-200 dark:prose-pre:border-zinc-800";
           content.innerHTML = renderMarkdown(safeText(m.content, ""));
@@ -689,10 +871,7 @@
           wrap.appendChild(bubble);
           el.messages.appendChild(wrap);
 
-          // Code highlight after insertion
-          try {
-            bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block));
-          } catch (_) {}
+          try { bubble.querySelectorAll("pre code").forEach((block) => hljs.highlightElement(block)); } catch (_) {}
         });
 
         scrollToBottom();
@@ -713,9 +892,6 @@
         el.modelLabel.textContent = safeText(state.model, DEFAULT_MODEL);
       }
 
-      // =========================
-      // Chat operations
-      // =========================
       function setActiveChat(id) {
         const exists = state.chats.some(c => c.id === id);
         if (!exists) return;
@@ -724,22 +900,6 @@
         updateHeader();
         renderChatList();
         renderMessages();
-      }
-
-      function ensureActiveChat() {
-        if (state.activeChatId && getActiveChat()) return getActiveChat();
-        // pick most recent or create
-        if (state.chats.length) {
-          const sorted = [...state.chats].sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
-          state.activeChatId = sorted[0].id;
-          saveLS(KEYS.active, state.activeChatId);
-          return getActiveChat();
-        }
-        const c = createChat("New chat");
-        state.chats.push(c);
-        state.activeChatId = c.id;
-        persistChats();
-        return c;
       }
 
       function newChat() {
@@ -754,38 +914,6 @@
         setTimeout(() => el.promptInput?.focus(), 0);
       }
 
-      function deleteChat(id) {
-        const chat = state.chats.find(c => c.id === id);
-        if (!chat) return;
-
-        const ok = confirm(`Delete chat "${safeText(chat.title, "Chat")}"?`);
-        if (!ok) return;
-
-        state.chats = state.chats.filter(c => c.id !== id);
-
-        if (state.activeChatId === id) {
-          state.activeChatId = null;
-          saveLS(KEYS.active, "");
-          ensureActiveChat();
-        }
-
-        persistChats();
-        renderChatList();
-        updateHeader();
-        renderMessages();
-      }
-
-      function renameChat(id, title) {
-        const chat = state.chats.find(c => c.id === id);
-        if (!chat) return;
-        const t = safeText(title, "").trim().slice(0, 80);
-        chat.title = t || "Untitled";
-        touchChat(chat);
-        persistChats();
-        renderChatList();
-        updateHeader();
-      }
-
       function clearActiveChatMessages() {
         const chat = getActiveChat();
         if (!chat) return;
@@ -798,32 +926,13 @@
         renderChatList();
       }
 
-      // =========================
       // System prompt
-      // =========================
-      function getGlobalSystemPrompt() {
-        return safeText(loadLS(KEYS.globalSystem, ""), "");
-      }
-
-      function setGlobalSystemPrompt(v) {
-        saveLS(KEYS.globalSystem, safeText(v, ""));
-      }
-
+      function getGlobalSystemPrompt() { return safeText(loadLS(KEYS.globalSystem, ""), ""); }
+      function setGlobalSystemPrompt(v) { saveLS(KEYS.globalSystem, safeText(v, "")); }
       function getEffectiveSystemPrompt(chat) {
         const perChat = safeText(chat?.systemPrompt, "").trim();
         const global = safeText(getGlobalSystemPrompt(), "").trim();
-        // If per-chat exists, prefer it; else global
         return perChat || global || "";
-      }
-
-      function openSystemModal() {
-        const chat = ensureActiveChat();
-        // default scope = chat
-        state.sysScope = "chat";
-        highlightSysScopeButtons();
-        el.systemPromptArea.value = safeText(chat.systemPrompt, "");
-        openModal(el.systemModal);
-        setTimeout(() => el.systemPromptArea?.focus(), 0);
       }
 
       function highlightSysScopeButtons() {
@@ -838,6 +947,15 @@
         }
       }
 
+      function openSystemModal() {
+        const chat = ensureActiveChat();
+        state.sysScope = "chat";
+        highlightSysScopeButtons();
+        el.systemPromptArea.value = safeText(chat.systemPrompt, "");
+        openModal(el.systemModal);
+        setTimeout(() => el.systemPromptArea?.focus(), 0);
+      }
+
       function loadSystemPromptIntoModal(scope) {
         const chat = ensureActiveChat();
         if (scope === "global") el.systemPromptArea.value = safeText(getGlobalSystemPrompt(), "");
@@ -847,20 +965,12 @@
       function saveSystemPromptFromModal() {
         const v = safeText(el.systemPromptArea.value, "");
         const chat = ensureActiveChat();
-        if (state.sysScope === "global") {
-          setGlobalSystemPrompt(v);
-          // keep per chat untouched
-        } else {
-          chat.systemPrompt = v;
-          touchChat(chat);
-          persistChats();
-        }
+        if (state.sysScope === "global") setGlobalSystemPrompt(v);
+        else { chat.systemPrompt = v; touchChat(chat); persistChats(); }
         closeModal(el.systemModal);
       }
 
-      // =========================
       // Input UX
-      // =========================
       function autosizeTextarea() {
         const ta = el.promptInput;
         if (!ta) return;
@@ -869,26 +979,11 @@
         ta.style.height = h + "px";
       }
 
-      function setStatus(msg, kind) {
-        const t = safeText(msg, "");
-        el.statusBar.textContent = t;
-        // Minimal tone
-        el.statusBar.className = "mt-2 text-xs " + (kind === "error"
-          ? "text-red-600 dark:text-red-400"
-          : "text-zinc-500 dark:text-zinc-400");
-      }
-
-      // =========================
-      // OpenRouter Streaming
-      // =========================
-      const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-
+      // Messages payload for OpenRouter
       function buildRequestMessages(chat) {
         const arr = [];
         const sys = getEffectiveSystemPrompt(chat);
         if (sys) arr.push({ role: "system", content: sys });
-
-        // Only include chat messages (user/assistant). Defensive filtering.
         (chat.messages || []).forEach(m => {
           const r = safeText(m.role, "");
           if (r !== "user" && r !== "assistant") return;
@@ -932,9 +1027,7 @@
       }
 
       function stopStreaming() {
-        try {
-          if (state.abortController) state.abortController.abort();
-        } catch (_) {}
+        try { state.abortController?.abort?.(); } catch (_) {}
         state.abortController = null;
         setStreamingUI(false);
         setStatus("Stopped.", "info");
@@ -949,21 +1042,12 @@
         }
 
         const model = safeText(state.model, DEFAULT_MODEL).trim() || DEFAULT_MODEL;
-
-        const messagesPayload = buildRequestMessages(chat);
-
-        const payload = {
-          model,
-          messages: messagesPayload,
-          stream: true,
-          temperature: 0.7
-        };
+        const payload = { model, messages: buildRequestMessages(chat), stream: true, temperature: 0.7 };
 
         state.abortController = new AbortController();
         setStreamingUI(true);
         setStatus("Streaming...", "info");
 
-        // Create placeholder assistant message
         addMessage(chat, "assistant", "");
         renderMessages();
 
@@ -992,14 +1076,11 @@
           const decoder = new TextDecoder("utf-8");
           let buffer = "";
 
-          // token-by-token typing = real streaming
           while (true) {
             const { value, done } = await reader.read();
             if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-
-            // SSE parse: lines separated by \n
             const lines = buffer.split("\n");
             buffer = lines.pop() || "";
 
@@ -1008,17 +1089,14 @@
               if (!l.startsWith("data:")) continue;
               const data = l.slice(5).trim();
               if (!data) continue;
-              if (data === "[DONE]") {
-                break;
-              }
+              if (data === "[DONE]") break;
+
               let json;
               try { json = JSON.parse(data); } catch (_) { continue; }
-
               const delta = json?.choices?.[0]?.delta?.content;
+
               if (typeof delta === "string" && delta.length) {
                 fullText += delta;
-
-                // Paint throttling for performance
                 const now = Date.now();
                 if (now - lastPaint > 30) {
                   updateLastAssistantMessage(chat, fullText);
@@ -1029,22 +1107,21 @@
             }
           }
 
-          // final paint
           updateLastAssistantMessage(chat, fullText);
           setChatTitleFromContent(chat);
           persistChats();
           renderChatList();
           renderMessages();
-
           setStatus("Done.", "info");
+
+          // Auto speak AI response (TTS)
+          if (state.autoSpeakAi) speakText(fullText);
+
         } catch (err) {
-          // remove placeholder assistant if empty
           const msg = safeText(err?.message, "Unknown error");
           setStatus(msg, "error");
 
-          // Try to keep chat consistent
           if (!fullText) {
-            // delete last assistant placeholder if it is empty
             try {
               const msgs = chat.messages || [];
               const last = msgs[msgs.length - 1];
@@ -1064,17 +1141,12 @@
         }
       }
 
-      // =========================
-      // Sending flow
-      // =========================
       async function sendMessage() {
         if (state.streaming) return;
-
         const text = safeText(el.promptInput.value, "").trim();
         if (!text) return;
 
         const chat = ensureActiveChat();
-
         addMessage(chat, "user", text);
         setChatTitleFromContent(chat);
         persistChats();
@@ -1088,11 +1160,7 @@
         await streamOpenRouter(chat);
       }
 
-      // =========================
-      // “Advanced agent” boost (Bangla note)
-      // =========================
-      // আপনি বলেছিলেন: “এজেন্ট তৈরি করব—শুধু একটু অ্যাডভান্স লেভেলের এজেন্ট লিখে দিতে হবে”
-      // এখানে কোনো extra build/tool নেই; সবচেয়ে ভালো “Agent behavior” আসবে System Prompt থেকে।
+      // Advanced agent seed
       const ADV_AGENT_SYSTEM_TEMPLATE = `
 You are an advanced, reliable AI agent inside a universal chat UI.
 
@@ -1112,32 +1180,27 @@ If the user asks for "agent mode", respond with:
 `.trim();
 
       function maybeSeedGlobalSystemPrompt() {
-        // If user has never set any system prompt, seed a strong "advanced agent" default.
         const global = safeText(loadLS(KEYS.globalSystem, ""), "").trim();
-        if (!global) {
-          setGlobalSystemPrompt(ADV_AGENT_SYSTEM_TEMPLATE);
-        }
+        if (!global) setGlobalSystemPrompt(ADV_AGENT_SYSTEM_TEMPLATE);
       }
 
-      // =========================
       // Init
-      // =========================
       function init() {
-        // Load settings
         state.apiKey = safeText(loadLS(KEYS.apiKey, ""), "");
         state.model = safeText(loadLS(KEYS.model, DEFAULT_MODEL), DEFAULT_MODEL) || DEFAULT_MODEL;
         state.dark = loadLS(KEYS.dark, "0") === "1";
 
-        applyDarkMode(state.dark);
+        // Audio prefs
+        state.voiceLang = safeText(loadLS(KEYS.voiceLang, "bn-BD"), "bn-BD");
+        state.autoSendVoice = loadLS(KEYS.autoSendVoice, "0") === "1";
+        state.autoSpeakAi = loadLS(KEYS.autoSpeakAi, "0") === "1";
 
-        // Seed advanced agent system prompt globally if empty
+        applyDarkMode(state.dark);
         maybeSeedGlobalSystemPrompt();
 
-        // Load chats
         const storedChats = loadJSON(KEYS.chats, []);
         state.chats = Array.isArray(storedChats) ? storedChats : [];
 
-        // Active chat
         const active = safeText(loadLS(KEYS.active, ""), "");
         state.activeChatId = active || null;
         ensureActiveChat();
@@ -1146,41 +1209,44 @@ If the user asks for "agent mode", respond with:
         el.apiKeyInput.value = state.apiKey;
         el.modelInput.value = state.model;
 
-        // Update header + lists
+        el.voiceLangSelect.value = state.voiceLang;
+        el.autoSendVoiceChk.checked = state.autoSendVoice;
+        el.autoSpeakAiChk.checked = state.autoSpeakAi;
+
         updateHeader();
         renderChatList();
         renderMessages();
 
-        // Input focus, autosize
         autosizeTextarea();
 
-        // Loader off AFTER init
+        // SpeechRecognition init
+        state.recognition = initSpeechRecognition();
+        setVoiceHint();
+        setTtsHint();
+
+        // Loader off after init
         el.loading.style.display = "none";
         el.app.style.display = "flex";
 
-        // Provide a helpful status
-        if (!state.apiKey) {
-          setStatus("Add your OpenRouter API key in Settings (⚙) to start streaming.", "info");
-        } else {
-          setStatus("Ready.", "info");
-        }
+        if (!state.apiKey) setStatus("Add your OpenRouter API key in Settings (⚙) to start streaming.", "info");
+        else setStatus("Ready.", "info");
       }
 
-      // =========================
       // Events
-      // =========================
-      // Sidebar
       el.hamburgerBtn.addEventListener("click", openSidebar);
       el.closeSidebarBtn.addEventListener("click", closeSidebar);
       el.mobileOverlay.addEventListener("click", closeSidebar);
 
-      // New chat
       el.newChatBtn.addEventListener("click", newChat);
 
-      // Settings modal
       el.settingsBtn.addEventListener("click", () => {
         el.apiKeyInput.value = safeText(state.apiKey, "");
         el.modelInput.value = safeText(state.model, DEFAULT_MODEL);
+
+        el.voiceLangSelect.value = state.voiceLang;
+        el.autoSendVoiceChk.checked = state.autoSendVoice;
+        el.autoSpeakAiChk.checked = state.autoSpeakAi;
+
         openModal(el.settingsModal);
         setTimeout(() => el.apiKeyInput?.focus(), 0);
       });
@@ -1192,18 +1258,34 @@ If the user asks for "agent mode", respond with:
         state.apiKey = k;
         state.model = m;
 
+        state.voiceLang = safeText(el.voiceLangSelect.value, "bn-BD");
+        state.autoSendVoice = !!el.autoSendVoiceChk.checked;
+        state.autoSpeakAi = !!el.autoSpeakAiChk.checked;
+
         saveLS(KEYS.apiKey, state.apiKey);
         saveLS(KEYS.model, state.model);
 
+        saveLS(KEYS.voiceLang, state.voiceLang);
+        saveLS(KEYS.autoSendVoice, state.autoSendVoice ? "1" : "0");
+        saveLS(KEYS.autoSpeakAi, state.autoSpeakAi ? "1" : "0");
+
+        // refresh recognition lang
+        if (state.recognition) {
+          try { state.recognition.lang = state.voiceLang; } catch (_) {}
+        } else {
+          state.recognition = initSpeechRecognition();
+        }
+
+        setVoiceHint();
+        setTtsHint();
         updateHeader();
+
         setStatus("Settings saved.", "info");
         closeModal(el.settingsModal);
       });
 
-      // Dark toggle
       el.darkToggleBtn.addEventListener("click", () => applyDarkMode(!state.dark));
 
-      // System prompt modal
       el.systemPromptBtn.addEventListener("click", openSystemModal);
       el.sysScopeChatBtn.addEventListener("click", () => {
         state.sysScope = "chat";
@@ -1217,22 +1299,26 @@ If the user asks for "agent mode", respond with:
       });
       el.saveSystemBtn.addEventListener("click", saveSystemPromptFromModal);
 
-      // Clear chat
       el.clearBtn.addEventListener("click", clearActiveChatMessages);
 
-      // Rename save
       el.renameSaveBtn.addEventListener("click", () => {
         const id = state.renameTargetId;
         if (!id) return closeModal(el.renameModal);
-        renameChat(id, el.renameInput.value);
+        const chat = state.chats.find(c => c.id === id);
+        if (chat) {
+          const t = safeText(el.renameInput.value, "").trim().slice(0, 80);
+          chat.title = t || "Untitled";
+          touchChat(chat);
+          persistChats();
+          renderChatList();
+          updateHeader();
+        }
         state.renameTargetId = null;
         closeModal(el.renameModal);
       });
 
-      // Search chats
       el.chatSearch.addEventListener("input", renderChatList);
 
-      // Input handling
       el.promptInput.addEventListener("input", autosizeTextarea);
       el.promptInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -1241,35 +1327,41 @@ If the user asks for "agent mode", respond with:
         }
       });
 
-      // Send
       el.sendBtn.addEventListener("click", sendMessage);
-
-      // Stop streaming
       el.stopBtn.addEventListener("click", stopStreaming);
 
-      // Responsive: close sidebar when resizing to desktop
+      // MIC button
+      el.micBtn.addEventListener("click", () => {
+        if (state.listening) stopListening();
+        else startListening();
+      });
+
+      // TTS toggle button
+      el.ttsToggleBtn.addEventListener("click", () => {
+        state.autoSpeakAi = !state.autoSpeakAi;
+        saveLS(KEYS.autoSpeakAi, state.autoSpeakAi ? "1" : "0");
+        setTtsHint();
+        setStatus("TTS " + (state.autoSpeakAi ? "enabled" : "disabled"), "info");
+      });
+
       window.addEventListener("resize", () => {
         if (window.matchMedia("(min-width: 768px)").matches) {
           el.mobileOverlay.classList.add("hidden");
           el.sidebar.classList.remove("-translate-x-full");
         } else {
-          // keep closed by default on mobile
           el.sidebar.classList.add("-translate-x-full");
           el.mobileOverlay.classList.add("hidden");
         }
       });
 
-      // Prevent runtime crashes: global error hooks
       window.addEventListener("error", (e) => {
         try { setStatus("Runtime error: " + safeText(e?.message, "Unknown"), "error"); } catch (_) {}
       });
-      window.addEventListener("unhandledrejection", (e) => {
+      window.addEventListener("unhandledrejection", () => {
         try { setStatus("Unhandled promise rejection.", "error"); } catch (_) {}
       });
 
-      // Init after DOM ready (script is end-of-body, but still defensive)
       try { init(); } catch (err) {
-        // If init fails, keep loader visible but show error text
         try {
           el.loading.innerHTML = `
             <div class="min-h-screen flex items-center justify-center px-6">
